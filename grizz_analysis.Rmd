@@ -1,0 +1,236 @@
+---
+title: "Grizzly Attitudes"
+author: "Elizabeth Hiroyasu"
+date: "September 12, 2017"
+output: html_document
+---
+
+Factor analysis conducted to assess how people think about grizzly bear reintroduction and what types of variables those attitudes map onto.
+```{r setup, include=FALSE}
+library(survey)
+library(weights)
+library(anesrake)
+library(lmtest)
+library(sandwich)
+library(car)
+library(psych)
+
+grizz <- read.csv("GRIZZLY_DATA_USE.csv", header = T)
+```
+
+##Knowledge
+```{r, echo=FALSE}
+ggplot(grizz) + 
+  geom_bar(aes(species_griz),bins = 3, width=1,  fill = c("darkgreen", "firebrick4", "sienna4"), colour = "black") +
+  labs(x = "Response", y = "Frequency",title = "Do Grizzly Bears Exist in California") +
+  scale_x_continuous(breaks = 1:3, labels = c("Yes", "No", "Don't Know")) + 
+  theme(text = element_text(family = "Trebuchet MS"),
+        plot.title = element_text(size = 14, face = "bold"), 
+        axis.title.x = element_text(size = 10, face = "bold"),
+        axis.title.y = element_text(size = 10, face = "bold"),
+        panel.border = element_rect(linetype = "solid", colour = "black", fill = NA))
+
+```
+
+##Weighting
+For this survey we oversampled rural residents, so we have to weight the data to account for this:
+```{r, echo=FALSE}
+# Create dummy for highet_degree and urban_rural so I can weight according to whether 
+# someone is (not) rural and whether they (don't) have college degree. This is jsut a 
+# formality type thing to make the weighting process go more smoothly. 
+
+grizz$college <- grizz$highest_degree>=5 
+grizz$rural <- grizz$urban_rural==3
+
+# Here I isolate percent of respondents falling into each category. This is so I have 
+# a rough estimate of distribution of respondents. 
+
+wpct(grizz$gender)
+wpct(grizz$urban_rural)
+wpct(grizz$latino)
+wpct(grizz$highest_degree)
+wpct(grizz$college)
+wpct(grizz$rural)
+
+# wpct produces a table of the proportion of data in each category for any variable.
+
+# Here I use US Census data to make variables with distribution of each data for all of 
+# California. 
+
+gender <- c(.50, .50)
+rural <- c(.13, .87) # Rural; non-rural.
+latino <- c(.39, .61) # Latino; not-latino.
+college <- c(.32, .68) # BA/higher; no college degree.  
+
+# Here I put the census variables into a list and name them. This is so they can be called 
+# upon later and used for weighting. Essentially, they are population-level estiamtes for 
+# all of California and are what we weight to. 
+
+targets <- list(gender, rural, latino, college)
+names(targets) <- c("gender", "rural", "latino", "college")
+
+# Here I create unique ids for all complete observations in the dataframe, and then determine
+# which variables should be used to weight based on the ones I provide in "target" list. 
+
+grizz$caseid <- 1:length(grizz$good_complete) # Create unique id for each complete obs. 
+anesrakefinder(targets, grizz, choosemethod="total") 
+
+# Here I rake weights data. This process determines how variables should be weighted and then rakes the
+# data to develop weights for the variables so that they match the target values I provided. 
+
+newgrizz <- anesrake(targets, grizz, caseid = grizz$caseid,
+                     verbose=F, cap=5, choosemethod = "total",
+                     type="pctlim", pctlim=.05, nlim=5, iterate=T, force1=T)
+
+# Here I create a new dataframe with weighted data #
+
+wt_grizz_df <- svydesign(ids = ~1, data = grizz, weights = newgrizz$weightvec) 
+
+# List of what the function's arguments do:
+# ids = formula/dataframe identifying cluster ids from largest level to smallest level (-0) and -1 is a 
+# formula for no clusters. 
+# data = dataframe
+# weights = out weights to be used in the data. Select weights from anesrake object we created 
+# earlier and use sigil to select numeric column title "weightvec" from it. 
+
+summary(wt_grizz_df) # Need to use this and other functions from survey package with weighted data. 
+
+# See weights 
+
+sup_unwt <-  wpct(grizz$griz_support) 
+sup_wt  <-  wpct(grizz$griz_support, newgrizz$weightvec) # See ** 
+sup_tab <- data.frame(sup_unwt, sup_wt)
+sup_tab
+
+# ** You can weight your table by providing a vector of weights in wpct function, which I do
+# by calling the weightvector from newgrizz. 
+
+table(grizz$griz_support)/length(grizz$X)*100
+
+# Here I produce a table to check that wpct calculated the unweighted proportion correctly. 
+
+grizz$weights <- newgrizz$weightvec
+
+# Here I create a csv file for my weights. 
+
+write.csv(print(newgrizz), "GRIZZ_WT_USE.csv")
+```
+
+##Factor Analysis
+The factanal command uses the maximum likelihood to identify the loadings of different components
+```{r, echo=FALSE}
+grizz_factor<-cbind(grizz[,47:61])
+names(grizz_factor)<-c("survival", "forests", "SafetyThreat", "LivelihoodThreat", "Tourism",
+                       "Feds", "ThreatPP", "OtherSpecies", "Extinction", "LocalControl", "Ranchers",
+                       "OutdoorRec", "Ag", "Urban", "Rural")
+grizz_comp<-factanal(grizz_factor, 5, scores="Bartlett")
+grizz_comp
+
+#Plotting the relationship of the factors
+load<-grizz_comp$loadings[,1:2]
+# plot(load, type="n", main="Factors Influencing Support for Grizzly Reintroduction") # set up plot 
+# text(load,labels=names(grizz_factor),cex=1.3)
+# 
+# fa.diagram(grizz_comp$loadings)
+
+grizz<-cbind(grizz, grizz_comp$scores)
+```
+
+##Values
+```{r, echo=FALSE}
+grizz_values<-read.csv("kunisurvey_coded_march8.csv", header=T)
+values<-cbind(grizz_values[,36:44], grizz_values[,46:54])
+
+calc_values<-function(df, v1, v2, v3){
+  dat<-rowSums(df[,c(v1, v2, v3)], na.rm=TRUE)
+}
+
+altruism<-calc_values(values, v1="male_altruism1", v2="male_altruism2", v3="male_altruism3")
+egoism<-calc_values(values, v1="male_ego1", v2="male_ego2", v3="male_ego3")
+biospherism<-calc_values(values, v1="male_bio1", v2="male_bio2", v3="male_bio3")
+male_sum<-data.frame(altruism, egoism, biospherism)
+
+altruism<-calc_values(values, v1="female_altruism1", v2="female_altruism2", v3="female_altruism3")
+egoism<-calc_values(values, v1="female_ego1", v2="female_ego2", v3="female_ego3")
+biospherism<-calc_values(values, v1="female_bio1", v2="female_bio2", v3="female_bio3")
+female_sum<-data.frame(altruism, egoism, biospherism)
+
+values_tot<-female_sum+male_sum
+values_adj<-values_tot/3
+
+grizz<-cbind(grizz, values_adj)
+```
+
+Breaking out the biospherism values:
+```{r, echo=FALSE}
+bio1<-rowSums(values[,c("male_bio1", "female_bio1")], na.rm=TRUE)
+bio2<-rowSums(values[,c("male_bio2", "female_bio2")], na.rm=TRUE)
+bio3<-rowSums(values[,c("male_bio3", "female_bio3")], na.rm=TRUE)
+```
+
+##Regression
+```{r, echo=FALSE}
+sup_ols_lm_wts <- lm(griz_support ~ 
+                       as.factor(college) # TRUE = College degree; FALSE = No college degree.
+                     + as.factor(rural) # TRUE = Rural; FALSE = Not Rural. 
+                     + as.factor(gender) # 1 = Male; 2 = Female. 
+                     + age
+                     + hhincome 
+                     + as.factor(latino) # 1 = Latino; 2 = Not Latino. 
+                     + ideology # Increase corresponds to being more conservative
+                     + as.factor(partyid) # 1 = Rep.; 2 = Dem.; 3 = Ind.; 4 = Other. 
+                     #+ as.factor(votechoice) # 1 = Trump; 2 = Clinton; 3 = Other; 4 = Didn't Vote. 
+                     + as.factor(species_griz) # 1 = Yes; 2 = No; 3 = Don't Know. 
+                     + Factor1
+                     + Factor2
+                     + Factor3
+                     + Factor4
+                     + Factor5
+                     + altruism
+                     + biospherism
+                     + egoism
+                     + Q66 # Unit increase corresponds to increased likelihood to discontinue.
+                     + as.factor(natpark_ca) # 1 = Yes; 2 = No; 3 = Don't Know.
+                     + as.factor(gtreat1num), # 1 = Treated; 0 = Control.
+                     weights = weights,
+                     data = grizz)
+
+summary(sup_ols_lm_wts)
+#xtable(sup_ols_lm_wts, out="regression.htm")
+#write.table(summary(sup_ols_lm_wts), file="wtRegresseion.txt", sep=",", quote=FALSE, row.names=F)
+#stargazer(summary(sup_ols_lm_wts), out="regression.htm")
+```
+
+With broken out biospherism values:
+```{r, echo=FALSE}
+
+sup_ols_lm_wts_bio <- lm(griz_support ~ 
+                       as.factor(college) # TRUE = College degree; FALSE = No college degree.
+                     + as.factor(rural) # TRUE = Rural; FALSE = Not Rural. 
+                     + as.factor(gender) # 1 = Male; 2 = Female. 
+                     + age
+                     + hhincome 
+                     + as.factor(latino) # 1 = Latino; 2 = Not Latino. 
+                     + ideology # Increase corresponds to being more conservative
+                     + as.factor(partyid) # 1 = Rep.; 2 = Dem.; 3 = Ind.; 4 = Other. 
+                     #+ as.factor(votechoice) # 1 = Trump; 2 = Clinton; 3 = Other; 4 = Didn't Vote. 
+                     + as.factor(species_griz) # 1 = Yes; 2 = No; 3 = Don't Know. 
+                     + Factor1
+                     + Factor2
+                     + Factor3
+                     + Factor4
+                     + Factor5
+                     + altruism
+                     + bio1
+                     + bio2
+                     + bio3
+                     + egoism
+                     + Q66 # Unit increase corresponds to increased likelihood to discontinue.
+                     + as.factor(natpark_ca) # 1 = Yes; 2 = No; 3 = Don't Know.
+                     + as.factor(gtreat1num), # 1 = Treated; 0 = Control.
+                     weights = weights,
+                     data = grizz)
+
+summary(sup_ols_lm_wts_bio)
+
+```
