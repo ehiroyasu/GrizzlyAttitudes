@@ -116,7 +116,7 @@ grizz$weights <- newgrizz$weightvec
 write.csv(print(newgrizz), "GRIZZ_WT_USE.csv")
 ```
 
-##Factor Analysis
+##Pooled Factor Analysis
 The factanal command uses the maximum likelihood to identify the loadings of different components
 ```{r, echo=FALSE}
 grizz_factor<-cbind(grizz[,47:61])
