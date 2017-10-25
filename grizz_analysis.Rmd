@@ -133,7 +133,7 @@ load<-grizz_comp$loadings[,1:2]
 # 
 # fa.diagram(grizz_comp$loadings)
 
-grizz<-cbind(grizz, grizz_comp$scores)
+#grizz<-cbind(grizz, grizz_comp$scores)
 ```
 
 ##Values
@@ -159,6 +159,8 @@ values_tot<-female_sum+male_sum
 values_adj<-values_tot/3
 
 grizz<-cbind(grizz, values_adj)
+
+write.csv(grizz,file="grizz_calc_values_10.25.csv")
 ```
 
 Breaking out the biospherism values:
