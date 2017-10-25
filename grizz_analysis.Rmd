@@ -158,7 +158,6 @@ female_sum<-data.frame(altruism, egoism, biospherism)
 values_tot<-female_sum+male_sum
 values_adj<-values_tot/3
 
-grizz<-cbind(grizz, values_adj)
 
 write.csv(grizz,file="grizz_calc_values_10.25.csv")
 ```
