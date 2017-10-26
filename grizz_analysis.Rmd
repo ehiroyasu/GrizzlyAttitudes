@@ -113,7 +113,9 @@ grizz$weights <- newgrizz$weightvec
 
 # Here I create a csv file for my weights. 
 
-write.csv(print(newgrizz), "GRIZZ_WT_USE.csv")
+write.csv(print(newgrizz), "GRIZZ_WTS.csv")
+write.csv(grizz, "GRIZZ_WT_USE.csv")
+grizz<-read.csv("GRIZZ_WT_USE.csv")
 ```
 
 ##Pooled Factor Analysis
@@ -138,6 +140,7 @@ load<-grizz_comp$loadings[,1:2]
 
 ##Values
 ```{r, echo=FALSE}
+grizz<-read.csv("GRIZZ_WT_USE.csv")
 grizz_values<-read.csv("kunisurvey_coded_march8.csv", header=T)
 values<-cbind(grizz_values[,36:44], grizz_values[,46:54])
 
@@ -158,8 +161,8 @@ female_sum<-data.frame(altruism, egoism, biospherism)
 values_tot<-female_sum+male_sum
 values_adj<-values_tot/3
 
-
-write.csv(grizz,file="grizz_calc_values_10.25.csv")
+grizz<-cbind(grizz, values_adj)
+write.csv(grizz,file="GRIZZ_WT_VALUES.csv")
 ```
 
 Breaking out the biospherism values:
