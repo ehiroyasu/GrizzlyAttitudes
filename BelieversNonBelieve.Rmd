@@ -1,0 +1,89 @@
+---
+title: "Believers vs NonBelievers"
+author: "Elizabeth Hiroyasu"
+date: "October 14, 2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+library(survey)
+library(weights)
+library(anesrake)
+library(lmtest)
+library(sandwich)
+library(car)
+library(psych)
+
+grizz <- read.csv("GRIZZ_WT_VALUES.csv", header = T)
+grizz<-grizz[,-1:-3]
+```
+
+
+##Believers vs NonBelievers
+
+```{r, echo=FALSE, warning=FALSE}
+ggplot(grizz) + 
+  geom_bar(aes(species_griz),bins = 3, width=1,  fill = c("darkgreen", "firebrick4", "sienna4"), colour = "black") +
+  labs(x = "Response", y = "Frequency",title = "Do Grizzly Bears Exist in California") +
+  scale_x_continuous(breaks = 1:3, labels = c("Yes", "No", "Don't Know")) + 
+  theme(panel.border = element_rect(linetype = "solid", colour = "black", fill = NA))
+
+
+names(grizz)[46:60]<-c("survival", "forests", "SafetyThreat", "LivelihoodThreat", "Tourism",
+                       "Feds", "ThreatPP", "OtherSpecies", "Extinction", "LocalControl", "Ranchers",
+                       "OutdoorRec", "Ag", "Urban", "Rural")
+
+believers<-(grizz[which(grizz$species_griz==1),])
+nonbelievers<-(grizz[which(grizz$species_griz==2),])
+dontknow<-(grizz[which(grizz$species_griz==3),])
+lowknowledge<-rbind(believers, dontknow)
+```
+
+##Factor analysis
+#Believers
+```{r, echo=FALSE}
+believe_comp<-factanal(believers[,46:60], 5, scores="Bartlett")
+believe_comp
+
+#Plotting the relationship of the factors
+fa.diagram(believe_comp$loadings, main="Believers Factor Analysis")
+
+believers<-cbind(believers, believe_comp$scores)
+write.csv(believers,"believers_factors.csv")
+```
+
+#NonBelievers
+```{r, echo=FALSE}
+nonbelieve_comp<-factanal(nonbelievers[,46:60], 5, scores="Bartlett")
+nonbelieve_comp
+
+#Plotting the relationship of the factors
+fa.diagram(nonbelieve_comp$loadings, main="Non-Believers Factor Analysis")
+
+nonbelievers<-cbind(nonbelievers, nonbelieve_comp$scores)
+write.csv(nonbelievers, "nonbelievers_factors.csv")
+```
+
+#Don't Know
+```{r, echo=FALSE}
+dontknow_comp<-factanal(dontknow[,46:60], 5, scores="Bartlett")
+dontknow_comp
+
+#Plotting the relationship of the factors
+fa.diagram(dontknow_comp$loadings, main="Don't Know Factor Analysis")
+
+dontknow<-cbind(dontknow, dontknow_comp$scores)
+write.csv(dontknow, "dontknow_factors.csv")
+```
+
+#Low Knowledge
+```{r, echo=FALSE}
+lowknowledge_comp<-factanal(lowknowledge[,46:60], 5, scores="Bartlett")
+lowknowledge_comp
+
+#Plotting the relationship of the factors
+fa.diagram(lowknowledge_comp$loadings, main="Low Knowledge Factor Analysis")
+
+lowknowledge<-cbind(lowknowledge, lowknowledge_comp$scores)
+write.csv(lowknowledge, "lowknowledge_factors.csv")
+```
