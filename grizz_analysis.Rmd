@@ -21,11 +21,10 @@ grizz <- read.csv("GRIZZLY_DATA_USE.csv", header = T)
 ##Knowledge
 ```{r, echo=FALSE}
 ggplot(grizz) + 
-  geom_bar(aes(species_griz),bins = 3, width=1,  fill = c("darkgreen", "firebrick4", "sienna4"), colour = "black") +
-  labs(x = "Response", y = "Frequency",title = "Do Grizzly Bears Exist in California") +
+  geom_bar(aes(species_griz), width=1,  colour = "black") +
+  labs(x = "Response", y = "Frequency",title = "Do Grizzly Bears Exist in California?") +
   scale_x_continuous(breaks = 1:3, labels = c("Yes", "No", "Don't Know")) + 
-  theme(text = element_text(family = "Trebuchet MS"),
-        plot.title = element_text(size = 14, face = "bold"), 
+  theme(plot.title = element_text(size = 14, face = "bold"), 
         axis.title.x = element_text(size = 10, face = "bold"),
         axis.title.y = element_text(size = 10, face = "bold"),
         panel.border = element_rect(linetype = "solid", colour = "black", fill = NA))
