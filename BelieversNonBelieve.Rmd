@@ -49,6 +49,8 @@ believe_comp
 fa.diagram(believe_comp$loadings, main="Believers Factor Analysis")
 
 believers<-cbind(believers, believe_comp$scores)
+names(believers)[names(believers)=="Factor2"]<-"EcologicalImpacts"
+names(believers)[names(believers)=="Factor3"]<-"Benefits"
 write.csv(believers,"believers_factors.csv")
 ```
 
@@ -61,6 +63,9 @@ nonbelieve_comp
 fa.diagram(nonbelieve_comp$loadings, main="Non-Believers Factor Analysis")
 
 nonbelievers<-cbind(nonbelievers, nonbelieve_comp$scores)
+names(nonbelievers)[names(nonbelievers)=="Factor1"]<-"Benefits"
+names(nonbelievers)[names(nonbelievers)=="Factor2"]<-"EcologicalImpacts"
+
 write.csv(nonbelievers, "nonbelievers_factors.csv")
 ```
 
@@ -73,6 +78,8 @@ dontknow_comp
 fa.diagram(dontknow_comp$loadings, main="Don't Know Factor Analysis")
 
 dontknow<-cbind(dontknow, dontknow_comp$scores)
+names(dontknow)[names(dontknow)=="Factor1"]<-"Benefits"
+names(dontknow)[names(dontknow)=="Factor2"]<-"EcologicalImpacts"
 write.csv(dontknow, "dontknow_factors.csv")
 ```
 
@@ -85,5 +92,7 @@ lowknowledge_comp
 fa.diagram(lowknowledge_comp$loadings, main="Low Knowledge Factor Analysis")
 
 lowknowledge<-cbind(lowknowledge, lowknowledge_comp$scores)
+names(lowknowledge)[names(lowknowledge)=="Factor1"]<-"EcologicalImpacts"
+names(lowknowledge)[names(lowknowledge)=="Factor2"]<-"Benefits"
 write.csv(lowknowledge, "lowknowledge_factors.csv")
 ```
