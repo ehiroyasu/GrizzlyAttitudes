@@ -137,6 +137,28 @@ load<-grizz_comp$loadings[,1:2]
 #grizz<-cbind(grizz, grizz_comp$scores)
 ```
 
+##Pooled NMDS
+currently no convergence
+Probably because there isn't a variable that binds the questions together. We should have N objects measured on p numeric variables. In this case, we just have p numeric variables, without the objects.
+```{r}
+library(vegan)
+library(MASS)
+grizz.nmds<-metaMDS(grizz_factor, distance="bray", k=3, trymax=20, noshare=0.1)
+grizz.nmds.2<-metaMDS(grizz_factor, previous.best=grizz.nmds)
+plot(grizz.nmds, display=c("sites", "species"), choice=c(1,2), type="t")
+
+```
+
+##Pooled PCA:
+prcomp is preferred to princomp
+```{r}
+grizz.pca<-prcomp(grizz_factor)
+plot(griz.pca, type="l")
+biplot(grizz.pca)
+```
+
+
+
 ##Values
 ```{r, echo=FALSE}
 grizz<-read.csv("GRIZZ_WT_USE.csv")
