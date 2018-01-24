@@ -6,10 +6,6 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-library(survey)
-library(weights)
-library(anesrake)
-library(lmtest)
 library(sandwich)
 library(car)
 library(psych)
@@ -23,26 +19,27 @@ grizz<-grizz[,-1:-3]
 
 ```{r, echo=FALSE, warning=FALSE}
 ggplot(grizz) + 
-  geom_bar(aes(species_griz),bins = 3, width=1,  fill = c("darkgreen", "firebrick4", "sienna4"), colour = "black") +
+  geom_bar(aes(species_griz),bins = 3, width=1,  colour = "black") +
   labs(x = "Response", y = "Frequency",title = "Do Grizzly Bears Exist in California") +
   scale_x_continuous(breaks = 1:3, labels = c("Yes", "No", "Don't Know")) + 
   theme(panel.border = element_rect(linetype = "solid", colour = "black", fill = NA))
 
 
 names(grizz)[46:60]<-c("survival", "forests", "SafetyThreat", "LivelihoodThreat", "Tourism",
-                       "Feds", "ThreatPP", "OtherSpecies", "Extinction", "LocalControl", "Ranchers",
-                       "OutdoorRec", "Ag", "Urban", "Rural")
+                       "Feds", "ThreatPP", "OtherSpecies", "Extinction", "LocalControl", 
+                       "Ranchers", "OutdoorRec", "Ag", "Urban", "Rural")
 
 believers<-(grizz[which(grizz$species_griz==1),])
-nonbelievers<-(grizz[which(grizz$species_griz==2),])
+highknowledge<-(grizz[which(grizz$species_griz==2),])
 dontknow<-(grizz[which(grizz$species_griz==3),])
 lowknowledge<-rbind(believers, dontknow)
 ```
 
 ##Factor analysis
 #Believers
+Incorrectly identified grizzly bears as currently existing in CA.
 ```{r, echo=FALSE}
-believe_comp<-factanal(believers[,46:60], 5, scores="Bartlett")
+believe_comp<-factanal(believers[,c(46:47, 50:60)], 4, scores="Bartlett")
 believe_comp
 
 #Plotting the relationship of the factors
@@ -54,25 +51,27 @@ names(believers)[names(believers)=="Factor3"]<-"Benefits"
 write.csv(believers,"believers_factors.csv")
 ```
 
-#NonBelievers
+#High Knowledge
+Correctly believed that grizzly bears do not currently exist in CA.
 ```{r, echo=FALSE}
-nonbelieve_comp<-factanal(nonbelievers[,46:60], 5, scores="Bartlett")
-nonbelieve_comp
+highknowledge_comp<-factanal(highknowledge[,c(46:47, 50:60)],4, scores="Bartlett")
+#highknowledge_comp
 
 #Plotting the relationship of the factors
-fa.diagram(nonbelieve_comp$loadings, main="Non-Believers Factor Analysis")
+fa.diagram(highknowledge_comp$loadings, main="High Knowledge Factor Analysis")
 
-nonbelievers<-cbind(nonbelievers, nonbelieve_comp$scores)
-names(nonbelievers)[names(nonbelievers)=="Factor1"]<-"Benefits"
-names(nonbelievers)[names(nonbelievers)=="Factor2"]<-"EcologicalImpacts"
+highknowledge<-cbind(highknowledge, highknowledge_comp$scores)
+names(highknowledge)[names(highknowledge)=="Factor1"]<-"Benefits"
+names(highknowledge)[names(highknowledge)=="Factor2"]<-"EcologicalImpacts"
 
-write.csv(nonbelievers, "nonbelievers_factors.csv")
+write.csv(highknowledge, "nonbelievers_factors.csv")
 ```
 
 #Don't Know
+Did not know if grizzly bears existed in CA
 ```{r, echo=FALSE}
-dontknow_comp<-factanal(dontknow[,46:60], 5, scores="Bartlett")
-dontknow_comp
+dontknow_comp<-factanal(dontknow[,c(46:47, 50:60)], 4, scores="Bartlett")
+#dontknow_comp
 
 #Plotting the relationship of the factors
 fa.diagram(dontknow_comp$loadings, main="Don't Know Factor Analysis")
@@ -84,9 +83,10 @@ write.csv(dontknow, "dontknow_factors.csv")
 ```
 
 #Low Knowledge
+Pooled Don't know and respondents who incorrectly answered the question about whether grizzly bears currently exist in CA.
 ```{r, echo=FALSE}
-lowknowledge_comp<-factanal(lowknowledge[,46:60], 5, scores="Bartlett")
-lowknowledge_comp
+lowknowledge_comp<-factanal(lowknowledge[,c(46:47, 50:60)], 4, scores="Bartlett")
+#lowknowledge_comp
 
 #Plotting the relationship of the factors
 fa.diagram(lowknowledge_comp$loadings, main="Low Knowledge Factor Analysis")
@@ -95,4 +95,30 @@ lowknowledge<-cbind(lowknowledge, lowknowledge_comp$scores)
 names(lowknowledge)[names(lowknowledge)=="Factor1"]<-"EcologicalImpacts"
 names(lowknowledge)[names(lowknowledge)=="Factor2"]<-"Benefits"
 write.csv(lowknowledge, "lowknowledge_factors.csv")
+```
+
+##Testing differences between High knowledge and Low Knowledge Respondents
+```{r, echo=FALSE}
+
+highknowledge$altruism_weights<-highknowledge$altruism*highknowledge$weights
+highknowledge$egoism_weights<-highknowledge$egoism*highknowledge$weights
+highknowledge$biospherism_weights<-highknowledge$biospherism*highknowledge$weights
+
+lowknowledge$altruism_weights<-lowknowledge$altruism*lowknowledge$weights
+lowknowledge$egoism_weights<-lowknowledge$egoism*lowknowledge$weights
+lowknowledge$biospherism_weights<-lowknowledge$biospherism*lowknowledge$weights
+
+t.test(highknowledge$altruism_weights, lowknowledge$altruism_weights)
+t.test(highknowledge$egoism_weights, lowknowledge$egoism_weights)
+t.test(highknowledge$biospherism_weights, lowknowledge$biospherism_weights)
+
+boxplot(highknowledge$altruism_weights, lowknowledge$altruism_weights,
+        highknowledge$egoism_weights, lowknowledge$egoism_weights,
+        highknowledge$biospherism_weights, lowknowledge$biospherism_weights,
+        main="Difference of means of values for high and low knowledge respondents",
+        at=c(1,2, 4,5, 7,8), names=c("high\n alt", "low\n alt", "high\n ego", 
+                                     "low\n ego", "high\n bio", "low\n 
+                                     bio"),
+        col=c("firebrick4", "darkgreen"))
+
 ```
