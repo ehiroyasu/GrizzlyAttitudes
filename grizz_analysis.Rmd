@@ -5,7 +5,7 @@ date: "September 12, 2017"
 output: html_document
 ---
 
-Factor analysis conducted to assess how people think about grizzly bear reintroduction and what types of variables those attitudes map onto.
+
 ```{r setup, include=FALSE}
 library(survey)
 library(weights)
@@ -14,6 +14,7 @@ library(lmtest)
 library(sandwich)
 library(car)
 library(psych)
+library(FactoMineR)
 
 grizz <- read.csv("GRIZZLY_DATA_USE.csv", header = T)
 ```
@@ -116,47 +117,6 @@ write.csv(print(newgrizz), "GRIZZ_WTS.csv")
 write.csv(grizz, "GRIZZ_WT_USE.csv")
 grizz<-read.csv("GRIZZ_WT_USE.csv")
 ```
-
-##Pooled Factor Analysis
-The factanal command uses the maximum likelihood to identify the loadings of different components
-```{r, echo=FALSE}
-grizz_factor<-cbind(grizz[,47:61])
-names(grizz_factor)<-c("survival", "forests", "SafetyThreat", "LivelihoodThreat", "Tourism",
-                       "Feds", "ThreatPP", "OtherSpecies", "Extinction", "LocalControl", "Ranchers",
-                       "OutdoorRec", "Ag", "Urban", "Rural")
-grizz_comp<-factanal(grizz_factor, 5, scores="Bartlett")
-grizz_comp
-
-#Plotting the relationship of the factors
-load<-grizz_comp$loadings[,1:2]
-# plot(load, type="n", main="Factors Influencing Support for Grizzly Reintroduction") # set up plot 
-# text(load,labels=names(grizz_factor),cex=1.3)
-# 
-# fa.diagram(grizz_comp$loadings)
-
-#grizz<-cbind(grizz, grizz_comp$scores)
-```
-
-##Pooled NMDS
-currently no convergence
-Probably because there isn't a variable that binds the questions together. We should have N objects measured on p numeric variables. In this case, we just have p numeric variables, without the objects.
-```{r}
-library(vegan)
-library(MASS)
-grizz.nmds<-metaMDS(grizz_factor, distance="bray", k=3, trymax=20, noshare=0.1)
-grizz.nmds.2<-metaMDS(grizz_factor, previous.best=grizz.nmds)
-plot(grizz.nmds, display=c("sites", "species"), choice=c(1,2), type="t")
-
-```
-
-##Pooled PCA:
-prcomp is preferred to princomp
-```{r}
-grizz.pca<-prcomp(grizz_factor)
-plot(griz.pca, type="l")
-biplot(grizz.pca)
-```
-
 
 
 ##Values
