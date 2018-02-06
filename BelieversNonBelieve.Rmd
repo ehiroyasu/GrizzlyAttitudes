@@ -35,6 +35,23 @@ dontknow<-(grizz[which(grizz$species_griz==3),])
 lowknowledge<-rbind(believers, dontknow)
 ```
 
+##Different species
+```{r}
+species_df<-subset(grizz, select=species_griz:species_bbear)
+names(species_df)<-c("Grizzly Bear", "Bald Eagle", "Bison", "Wolf", "Black Bear")
+
+library(reshape2) # for melt()
+species_df <- melt(species_df)
+
+ggplot(species_df)  + 
+ geom_bar(aes(as.factor(value), fill=as.factor(value))) + 
+  labs(x="Response", y="Frequency", title="Do the following species exist in California?")+
+  scale_x_discrete(breaks=1:4, labels=c("Yes", "No", "Don't Know", "NA"))+
+  guides(fill=FALSE)+
+  facet_wrap(~ variable)
+```
+
+
 ##Factor analysis
 #Believers
 Incorrectly identified grizzly bears as currently existing in CA.
