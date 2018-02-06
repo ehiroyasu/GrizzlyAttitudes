@@ -61,7 +61,7 @@ nS <- nScree(x=ev$values, aparallel=ap$eigen$qevpea)
 plotnScree(nS)
 ```
 
-This suggests that the 15 questions collapse into two factors. We can then rerun the factor analysis, specifying two factors.
+This suggests that the 15 questions collapse into two factors. We can then rerun the exploratory factor analysis, specifying two factors.
 ```{r, echo=FALSE}
 grizz_comp2<-factanal(grizz_factor, 2, scores="Bartlett")
 grizz_comp2
@@ -71,6 +71,7 @@ fa.diagram(grizz_comp2$loadings)
 
 
 ##Pooled PCA:
+We can also run a principal components analysis.
 note:prcomp is preferred to princomp
 The pooled PCA also suggests that the questions collapse onto two main factors
 ```{r, echo=FALSE}
@@ -81,6 +82,17 @@ scores<-grizz.pca$x
 plot(grizz.pca, type="l")
 biplot(grizz.pca)
 ```
+
+Looking at Cronbach's alpha using the components from the pooled PCA
+```{r}
+grizz_component1<-subset(grizz_factor, select=c("survival", "forests", "Tourism","OtherSpecies","Extinction","OutdoorRec","Urban","Rural"))
+psych::alpha(grizz_component1)
+
+grizz_component2<-subset(grizz_factor, select=c("Feds", "ThreatPP", "Ranchers", "Ag", "LocalControl"))
+psych::alpha(grizz_component2)
+```
+
+
 
 ##Using the FactoMineR package for more exploratory principal components analysis
 ```{r}
