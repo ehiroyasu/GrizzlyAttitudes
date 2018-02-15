@@ -14,13 +14,25 @@ grizz <- read.csv("GRIZZ_WT_VALUES.csv", header = T)
 grizz<-grizz[,-1:-3]
 ```
 
+##Support for reintroduction
+```{r, echo=FALSE}
+ggplot(grizz, aes(x=factor(griz_support))) +
+  geom_bar(aes(y=(..count..)/sum(..count..)), fill="darkred")+
+  labs(x="Response", y="Percent", title="Support for Grizzly Bear Reintroduction")+
+  scale_y_continuous(labels=percent)+
+  scale_x_discrete(labels=c("Strongly Oppose","Oppose", "Somewhat Oppose", "Neither", "Somewhat Support", "Support", 
+                            "Strongly Support"))+
+  theme(axis.text.x=element_text(angle=45, size=11, vjust=0.5))
+   theme(panel.border = element_rect(linetype = "solid", colour = "black", fill = NA))
+
+```
+
 
 ##Believers vs NonBelievers
-
 ```{r, echo=FALSE, warning=FALSE}
 ggplot(grizz[!is.na(grizz$species_griz),], aes(x=factor(species_griz))) + 
   geom_bar(aes(y=(..count..)/sum(..count..)), fill = c("darkred", "darkgreen", "darkred")) +
-  labs(x = "Response", y="Percent", title = "Do Grizzly Bears Exist in California") + 
+  labs(x = "Response", y="Percent", title = "Do Grizzly Bears Exist in California?") + 
   scale_y_continuous(labels=percent) +
   scale_x_discrete(breaks = 1:3, labels = c("Yes", "No", "Don't Know")) + 
   theme(panel.border = element_rect(linetype = "solid", colour = "black", fill = NA))
