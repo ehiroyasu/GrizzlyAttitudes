@@ -18,10 +18,11 @@ grizz<-grizz[,-1:-3]
 ##Believers vs NonBelievers
 
 ```{r, echo=FALSE, warning=FALSE}
-ggplot(grizz) + 
-  geom_bar(aes(species_griz),bins = 3, width=1,  colour = "black") +
-  labs(x = "Response", y = "Frequency",title = "Do Grizzly Bears Exist in California") +
-  scale_x_continuous(breaks = 1:3, labels = c("Yes", "No", "Don't Know")) + 
+ggplot(grizz[!is.na(grizz$species_griz),], aes(x=factor(species_griz))) + 
+  geom_bar(aes(y=(..count..)/sum(..count..)), fill = c("darkred", "darkgreen", "darkred")) +
+  labs(x = "Response", y="Percent", title = "Do Grizzly Bears Exist in California") + 
+  scale_y_continuous(labels=percent) +
+  scale_x_discrete(breaks = 1:3, labels = c("Yes", "No", "Don't Know")) + 
   theme(panel.border = element_rect(linetype = "solid", colour = "black", fill = NA))
 
 
