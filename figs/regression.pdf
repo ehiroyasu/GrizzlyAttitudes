@@ -1,0 +1,99 @@
+
+% Table created by stargazer v.5.2 by Marek Hlavac, Harvard University. E-mail: hlavac at fas.harvard.edu
+% Date and time: Thu, Sep 14, 2017 - 12:10:45 PM
+\begin{table}[!htbp] \centering 
+  \caption{} 
+  \label{} 
+\begin{tabular}{@{\extracolsep{5pt}}lc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{1}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-2} 
+\\[-1.8ex] & griz\_support \\ 
+\hline \\[-1.8ex] 
+ as.factor(college) & 0.006 \\ 
+  & (0.088) \\ 
+  & \\ 
+ as.factor(rural) & $-$0.013 \\ 
+  & (0.111) \\ 
+  & \\ 
+ as.factor(gender)2 & $-$0.051 \\ 
+  & (0.081) \\ 
+  & \\ 
+ age & $-$0.0001 \\ 
+  & (0.003) \\ 
+  & \\ 
+ hhincome & 0.029 \\ 
+  & (0.021) \\ 
+  & \\ 
+ as.factor(latino)2 & $-$0.247$^{***}$ \\ 
+  & (0.084) \\ 
+  & \\ 
+ ideology & 0.023 \\ 
+  & (0.028) \\ 
+  & \\ 
+ as.factor(partyid)2 & $-$0.036 \\ 
+  & (0.111) \\ 
+  & \\ 
+ as.factor(partyid)3 & $-$0.050 \\ 
+  & (0.120) \\ 
+  & \\ 
+ as.factor(partyid)4 & $-$0.418 \\ 
+  & (0.268) \\ 
+  & \\ 
+ as.factor(species\_griz)2 & $-$0.371$^{***}$ \\ 
+  & (0.098) \\ 
+  & \\ 
+ as.factor(species\_griz)3 & $-$0.161$^{*}$ \\ 
+  & (0.092) \\ 
+  & \\ 
+ Factor1 & 0.712$^{***}$ \\ 
+  & (0.042) \\ 
+  & \\ 
+ Factor2 & 0.385$^{***}$ \\ 
+  & (0.038) \\ 
+  & \\ 
+ Factor3 & $-$0.250$^{***}$ \\ 
+  & (0.033) \\ 
+  & \\ 
+ Factor4 & $-$0.161$^{***}$ \\ 
+  & (0.034) \\ 
+  & \\ 
+ Factor5 & $-$0.195$^{***}$ \\ 
+  & (0.026) \\ 
+  & \\ 
+ altruism & 0.188$^{***}$ \\ 
+  & (0.064) \\ 
+  & \\ 
+ biospherism & $-$0.168$^{***}$ \\ 
+  & (0.064) \\ 
+  & \\ 
+ egoism & 0.060 \\ 
+  & (0.049) \\ 
+  & \\ 
+ Q66 & $-$0.281$^{***}$ \\ 
+  & (0.037) \\ 
+  & \\ 
+ as.factor(natpark\_ca)2 & 0.090 \\ 
+  & (0.082) \\ 
+  & \\ 
+ as.factor(natpark\_ca)3 & 0.329 \\ 
+  & (0.293) \\ 
+  & \\ 
+ as.factor(gtreat1num)1 & $-$0.019 \\ 
+  & (0.074) \\ 
+  & \\ 
+ Constant & 5.619$^{***}$ \\ 
+  & (0.381) \\ 
+  & \\ 
+\hline \\[-1.8ex] 
+Observations & 754 \\ 
+R$^{2}$ & 0.613 \\ 
+Adjusted R$^{2}$ & 0.601 \\ 
+Residual Std. Error & 0.991 (df = 729) \\ 
+F Statistic & 48.172$^{***}$ (df = 24; 729) \\ 
+\hline 
+\hline \\[-1.8ex] 
+\textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
+\end{tabular} 
+\end{table} 
