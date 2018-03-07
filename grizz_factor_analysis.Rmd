@@ -11,15 +11,12 @@ library(psych)
 library(FactoMineR)
 library(nFactors)
 
-grizz <- read.csv("GRIZZLY_DATA_USE.csv", header = T)
+grizz <- read.csv("./data/processed/GRIZZLY_DATA_USE.csv", header = T)
 
 grizz_factor<-cbind(grizz[,c(which(colnames(grizz)=="Q72_16"):which(colnames(grizz)=="Q72_32"))])
 names(grizz_factor)<-c("survival", "forests", "SafetyThreat", "LivelihoodThreat", "Tourism",
                        "Feds", "ThreatPP", "OtherSpecies", "Extinction", "LocalControl",
                        "Ranchers", "OutdoorRec", "Ag", "Urban", "Rural")
-
-#dropping out personal threat questions
-grizz_factor<-grizz_factor[,-c(3:4)]
 ```
 
 We are specifically interested in people's attitudes toward the reintroduction of grizzly bears. Respondents were asked to respond with how much they agreed or disagreed on a 7-point likert scale with the following questions:
@@ -41,16 +38,15 @@ We are specifically interested in people's attitudes toward the reintroduction o
 
 *Questions 3 and 4 were dropped out of this analysis and analyzed separately, because they are threats about personal impacts of reintroducing grizzly bears.
 
-##Pooled Factor Analysis
-The factanal command uses the maximum likelihood to identify the loadings of different components. We used an a priori guess of five factors to load on.
+##Total PCA
+This analysis includes personal threat questions
 ```{r, echo=FALSE}
-grizz_comp<-factanal(grizz_factor, 5, scores="Bartlett")
-grizz_comp
-
-#Plotting the relationship of the factors
-fa.diagram(grizz_comp$loadings)
-
-#grizz<-cbind(grizz, grizz_comp$scores)
+grizz.pca1<-prcomp(grizz_factor)
+summary(grizz.pca1)
+loadings<-grizz.pca1$rotation
+scores<-grizz.pca1$x
+plot(grizz.pca1, type="l")
+biplot(grizz.pca1)
 ```
 
 ##Suppose we want to determine ahead of time the number of factors to extract:
@@ -61,9 +57,27 @@ nS <- nScree(x=ev$values, aparallel=ap$eigen$qevpea)
 plotnScree(nS)
 ```
 
+##Pooled Factor Analysis excluding personal threat questions
+From here forward, we will be dropping the personal threat questions from the analysis.
+
+The factanal command uses the maximum likelihood to identify the loadings of different components. We used an a priori guess of five factors to load on.
+```{r, echo=FALSE}
+#dropping out personal threat questions
+grizz_factor2<-grizz_factor[,-c(3:4)]
+
+grizz_comp<-factanal(grizz_factor2, 5, scores="Bartlett")
+grizz_comp
+
+#Plotting the relationship of the factors
+fa.diagram(grizz_comp$loadings)
+
+#grizz<-cbind(grizz, grizz_comp$scores)
+```
+
+
 This suggests that the 15 questions collapse into two factors. We can then rerun the exploratory factor analysis, specifying two factors.
 ```{r, echo=FALSE}
-grizz_comp2<-factanal(grizz_factor, 2, scores="Bartlett")
+grizz_comp2<-factanal(grizz_factor2, 2, scores="Bartlett")
 grizz_comp2
 
 fa.diagram(grizz_comp2$loadings)
@@ -75,20 +89,20 @@ We can also run a principal components analysis.
 note:prcomp is preferred to princomp
 The pooled PCA also suggests that the questions collapse onto two main factors
 ```{r, echo=FALSE}
-grizz.pca<-prcomp(grizz_factor)
-summary(grizz.pca)
-loadings<-grizz.pca$rotation
-scores<-grizz.pca$x
-plot(grizz.pca, type="l")
-biplot(grizz.pca)
+grizz.pca2<-prcomp(grizz_factor2)
+summary(grizz.pca2)
+loadings<-grizz.pca2$rotation
+scores<-grizz.pca2$x
+plot(grizz.pca2, type="l")
+biplot(grizz.pca2)
 ```
 
 Looking at Cronbach's alpha using the components from the pooled PCA
 ```{r}
-grizz_component1<-subset(grizz_factor, select=c("survival", "forests", "Tourism","OtherSpecies","Extinction","OutdoorRec","Urban","Rural"))
+grizz_component1<-subset(grizz_factor2, select=c("survival", "forests", "Tourism","OtherSpecies","Extinction","OutdoorRec","Urban","Rural"))
 psych::alpha(grizz_component1)
 
-grizz_component2<-subset(grizz_factor, select=c("Feds", "ThreatPP", "Ranchers", "Ag", "LocalControl"))
+grizz_component2<-subset(grizz_factor2, select=c("Feds", "ThreatPP", "Ranchers", "Ag", "LocalControl"))
 psych::alpha(grizz_component2)
 ```
 
@@ -96,7 +110,7 @@ psych::alpha(grizz_component2)
 
 ##Using the FactoMineR package for more exploratory principal components analysis
 ```{r}
-grizz.pca2<-PCA(grizz_factor)
+grizz.pca2<-PCA(grizz_factor2)
 scores<-grizz.pca2$ind$coord
 ```
 
