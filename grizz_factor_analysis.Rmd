@@ -20,6 +20,7 @@ names(grizz_factor)<-c("survival", "forests", "SafetyThreat", "LivelihoodThreat"
 ```
 
 We are specifically interested in people's attitudes toward the reintroduction of grizzly bears. Respondents were asked to respond with how much they agreed or disagreed on a 7-point likert scale with the following questions:
+
 1.  People have a responsibility to ensure the survival of grizzly bears.
 2.  Grizzly bear reintroduction would help make California forests healthier.
 3.  Grizzly bear reintroduction would pose a threat to my safety.*
@@ -36,17 +37,28 @@ We are specifically interested in people's attitudes toward the reintroduction o
 14.  Grizzly bear reintroduction would benefit urban residents.
 15.  Grizzly bear reintroduction would benefit rural residents.
 
-*Questions 3 and 4 were dropped out of this analysis and analyzed separately, because they are threats about personal impacts of reintroducing grizzly bears.
 
 ##Total PCA
 This analysis includes personal threat questions
+note:prcomp is preferred to princomp
+
 ```{r, echo=FALSE}
 grizz.pca1<-prcomp(grizz_factor)
 summary(grizz.pca1)
-loadings<-grizz.pca1$rotation
-scores<-grizz.pca1$x
 plot(grizz.pca1, type="l")
 biplot(grizz.pca1)
+```
+
+PCA loadings
+```{r, echo=FALSE}
+loadings<-grizz.pca1$rotation
+loadings
+```
+
+head of PCA scores
+```{r, echo=FALSE}
+scores<-grizz.pca1$x
+head(scores)
 ```
 
 ##Suppose we want to determine ahead of time the number of factors to extract:
@@ -57,14 +69,64 @@ nS <- nScree(x=ev$values, aparallel=ap$eigen$qevpea)
 plotnScree(nS)
 ```
 
-##Pooled Factor Analysis excluding personal threat questions
+
+##Pooled PCA:
+We can run the principal components analysis dropping the questions that include language of personal threats.
+The pooled PCA suggests that the questions collapse onto two main factors
+```{r, echo=FALSE}
+#dropping out personal threat questions
+grizz_factor2<-subset(grizz_factor, select=-c(SafetyThreat, LivelihoodThreat))
+```
+
+###Parallel analysis
+this tells us that we can preserve two factors
+```{r, echo=FALSE}
+ev <- eigen(cor(grizz_factor2))# get eigenvalues
+ap <- parallel(subject=nrow(grizz_factor2),var=ncol(grizz_factor2), rep=100,cent=.05)
+nS <- nScree(x=ev$values, aparallel=ap$eigen$qevpea)
+plotnScree(nS)
+```
+
+
+###PCA
+using the principal function from the psych package
+```{r, echo=FALSE}
+grizz.pca2.principal<-principal(grizz_factor2, rotate="varimax", nfactors=2)
+plot(grizz.pca2, type="l")
+biplot(grizz.pca2)
+```
+
+head of PCA scores
+```{r, echo=FALSE}
+scores<-data.frame(grizz.pca2.principal$scores)
+head(scores)
+grizz<-cbind(grizz, scores)
+#write.csv(grizz, file="./data/processed/grizz_withPCAScores_060718.csv")
+```
+
+Looking at Cronbach's alpha using the components from the pooled PCA
+```{r}
+grizz_component1<-subset(grizz_factor2, select=c("survival", "forests", "Tourism","OtherSpecies","Extinction","OutdoorRec","Urban","Rural"))
+psych::alpha(grizz_component1)
+
+grizz_component2<-subset(grizz_factor2, select=c("Feds", "ThreatPP", "Ranchers", "Ag", "LocalControl"))
+psych::alpha(grizz_component2)
+```
+
+##################################################################################################
+
+##Using the FactoMineR package for more exploratory principal components analysis
+```{r}
+grizz.pca2.2<-PCA(grizz_factor2)
+summary(grizz.pca2.2)
+scores<-grizz.pca2.2$ind$coord
+```
+
+##Pooled Factor Analysis including personal threat questions
 From here forward, we will be dropping the personal threat questions from the analysis.
 
 The factanal command uses the maximum likelihood to identify the loadings of different components. We used an a priori guess of five factors to load on.
 ```{r, echo=FALSE}
-#dropping out personal threat questions
-grizz_factor2<-grizz_factor[,-c(3:4)]
-
 grizz_comp<-factanal(grizz_factor2, 5, scores="Bartlett")
 grizz_comp
 
@@ -81,37 +143,6 @@ grizz_comp2<-factanal(grizz_factor2, 2, scores="Bartlett")
 grizz_comp2
 
 fa.diagram(grizz_comp2$loadings)
-```
-
-
-##Pooled PCA:
-We can also run a principal components analysis.
-note:prcomp is preferred to princomp
-The pooled PCA also suggests that the questions collapse onto two main factors
-```{r, echo=FALSE}
-grizz.pca2<-prcomp(grizz_factor2)
-summary(grizz.pca2)
-loadings<-grizz.pca2$rotation
-scores<-grizz.pca2$x
-plot(grizz.pca2, type="l")
-biplot(grizz.pca2)
-```
-
-Looking at Cronbach's alpha using the components from the pooled PCA
-```{r}
-grizz_component1<-subset(grizz_factor2, select=c("survival", "forests", "Tourism","OtherSpecies","Extinction","OutdoorRec","Urban","Rural"))
-psych::alpha(grizz_component1)
-
-grizz_component2<-subset(grizz_factor2, select=c("Feds", "ThreatPP", "Ranchers", "Ag", "LocalControl"))
-psych::alpha(grizz_component2)
-```
-
-
-
-##Using the FactoMineR package for more exploratory principal components analysis
-```{r}
-grizz.pca2<-PCA(grizz_factor2)
-scores<-grizz.pca2$ind$coord
 ```
 
 
