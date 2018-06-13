@@ -7,14 +7,19 @@ output: html_document
 
 
 ```{r setup, include=FALSE}
+library(psych)
+library(FactoMineR)
+library(nFactors)
 library(survey)
 library(weights)
 library(anesrake)
 library(lmtest)
 library(sandwich)
 library(car)
-library(psych)
-library(FactoMineR)
+library(MASS)
+library(Zelig)
+library(stargazer)
+library(stats)
 
 grizz <- read.csv("GRIZZLY_DATA_USE.csv", header = T)
 ```
