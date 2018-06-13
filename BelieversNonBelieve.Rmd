@@ -9,20 +9,20 @@ output: pdf_document
 library(sandwich)
 library(car)
 library(psych)
+library(tidyverse)
 
-grizz <- read.csv("GRIZZ_WT_VALUES.csv", header = T)
+grizz <- read.csv("./data/processed/GRIZZ_WT_VALUES.csv", header = T)
 grizz<-grizz[,-1:-3]
 ```
 
 ##Support for reintroduction
 ```{r, echo=FALSE}
 ggplot(grizz, aes(x=factor(griz_support))) +
-  geom_bar(aes(y=(..count..)/sum(..count..)), fill="darkred")+
+  geom_bar(aes(y=((..count..)/sum(..count..))*100))+
   labs(x="Response", y="Percent", title="Support for Grizzly Bear Reintroduction")+
-  scale_y_continuous(labels=percent)+
-  scale_x_discrete(labels=c("Strongly Oppose","Oppose", "Somewhat Oppose", "Neither", "Somewhat Support", "Support", 
-                            "Strongly Support"))+
-  theme(axis.text.x=element_text(angle=45, size=11, vjust=0.5))
+  #scale_y_continuous(labels=perc)+
+  scale_x_discrete(labels=c("Strongly Oppose","Oppose", "Somewhat Oppose", "Neither", "Somewhat Support", "Support", "Strongly Support"))+ 
+  theme(axis.text.x=element_text(angle=45, size=11, vjust=0.5))+
    theme(panel.border = element_rect(linetype = "solid", colour = "black", fill = NA))
 
 ```
@@ -48,20 +48,56 @@ dontknow<-(grizz[which(grizz$species_griz==3),])
 lowknowledge<-rbind(believers, dontknow)
 ```
 
-##Different species
+##Different species correct ID
 ```{r}
 species_df<-subset(grizz, select=species_griz:species_bbear)
 names(species_df)<-c("Grizzly Bear", "Bald Eagle", "Bison", "Wolf", "Black Bear")
 
 library(reshape2) # for melt()
 species_df <- melt(species_df)
+spfac<-factor(species_df$variable, levels=c("Black Bear", "Bald Eagle", "Wolf", "Bison", "Grizzly Bear"))
+sp_fac<-c("Black Bear", "Bald Eagle", "Wolf", "Bison", "Grizzly Bear")
 
-ggplot(species_df)  + 
- geom_bar(aes(as.factor(value), fill=as.factor(value))) + 
-  labs(x="Response", y="Frequency", title="Do the following species exist in California?")+
-  scale_x_discrete(breaks=1:4, labels=c("Yes", "No", "Don't Know", "NA"))+
-  guides(fill=FALSE)+
-  facet_wrap(~ variable)
+percent<-na.omit(species_df) %>%
+  group_by(variable, value) %>%
+  summarise(n=n()) %>%
+  mutate(freq=n/sum(n))%>%
+  ungroup()
+
+foo<-na.omit(species_df) %>%
+  group_by(variable) %>%
+  summarise(n=n())
+
+bar<-percent %>%
+  mutate(variable = factor(variable, levels=sp_fac))%>%
+  add_column(N_tot=rep(foo$n, each=3)) %>%
+  mutate(se=sqrt((freq*(1-freq))/N_tot))
+  
+ggplot(bar, aes(value,freq))+
+  geom_bar(stat='identity')+
+  facet_grid(.~variable)+
+  geom_errorbar(aes(ymin=freq-se, ymax=freq+se), width=0.1)+
+  labs(x="Response", y="Frequency", title="Do the following species exist in the wild in CA?")+ scale_y_continuous(labels=scales::percent) +
+  scale_x_discrete(limits=c("Yes", "No", "Don't Know"))+
+  guides(fill=FALSE)
+
+
+grizz_id<-subset(species_df, variable=="Grizzly Bear")
+#correctly id'd grizzlies as not here
+count(grizz_id)$freq[2]/dim(grizz_id)[1]
+
+bison_id<-subset(species_df, variable=="Bison")
+#correctly ID'd bison as not being here
+count(bison_id)$freq[2]/dim(bison_id)[1]
+#not sure
+count(bison_id)$freq[3]/dim(bison_id)[1]
+
+wolf_id<-subset(species_df, variable=="Wolf")
+count(wolf_id)$freq[1]/dim(wolf_id)[1]
+
+eagle_id<-subset(species_df, variable=="Bald Eagle")
+count(eagle_id)$freq[1]/dim(eagle_id)[1]
+
 ```
 
 
